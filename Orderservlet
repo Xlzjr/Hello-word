@@ -1,0 +1,107 @@
+package com.mvc.control;
+
+import java.io.IOException;
+import java.util.Date;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.mvc.bean.OrderBean;
+import com.mvc.dao.OrderDao;
+import com.mvc.bean.UserBean;
+import com.mvc.dao.UserDao;
+
+/**
+ * Servlet implementation class Orderervlet
+ */
+//@WebServlet("/Orderservlet")
+public class OrderServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	private OrderDao orderDao = null;
+
+	public OrderServlet() {
+		this.orderDao = new OrderDao();
+	}
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String action = request.getParameter("action");
+		System.out.println("\norder*********************action=" + action);
+		if (action == null || "".equals(action)) {
+			request.setAttribute("error", "您操作有误");
+			request.getRequestDispatcher("error.jsp")
+					.forward(request, response);
+		} else if ("OrderAdd".equals(action)) {
+			OrderAdd(request, response);
+		} else if ("OrderQuery".equals(action)) {
+			OrderQuery(request, response);
+		} else if ("OrderDel".equals(action)) {
+			OrderDel(request, response);
+		} else if ("OrderifQuery".equals(action)) {
+			OrderifQuery(request, response);
+		}
+	}
+
+	
+
+	/*********************** 添加订单信息 **************************/
+	private void OrderAdd(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		OrderBean orderBean= new OrderBean();
+		//获取系统时间
+		Date date1 = new Date();
+		java.sql.Date date = new java.sql.Date(date1.getTime());
+		orderBean.setTime(date.toString());
+		orderBean.setUid(Integer.parseInt(request.getParameter("uid")));
+		orderBean.setCount(request.getParameter("count")==""?0:Integer.parseInt(request.getParameter("count")));
+		orderBean.setPayall(Double.valueOf(request.getParameter("payall")));
+		orderBean.setFid(Integer.parseInt(request.getParameter("fid")));
+		request.getRequestDispatcher("q_person_order.jsp").forward(request,
+				response);
+	    /*int a = orderDao.insert(orderBean);
+	    if (a == 2) {
+			request.setAttribute("error", "��ͼ����Ϣ�Ѿ���ӣ�");
+			((RequestDispatcher) request).forward(request, response);
+		} else {
+			request.setAttribute("error", "ͼ����Ϣ���ʧ�ܣ�");
+			request.forward(request, response);
+		}*/
+	}
+
+	/*********************** 查询全部订单信息 **************************/
+	private void OrderQuery(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		String str = null;
+		request.setAttribute("order", orderDao.query(str)); // ����ѯ������浽book��
+		request.getRequestDispatcher("h_order.jsp").forward(request,
+				response);
+	}
+	/*********************** 删除订单信息**************************/
+	private void OrderDel(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		OrderBean orderBean = new OrderBean();
+		orderBean.setOid(Integer.valueOf(request.getParameter("oid")));
+		int ret = orderDao.delete(orderBean);
+		if (ret == 0) {
+			request.setAttribute("error", "删除订单信息失败！");
+			request.getRequestDispatcher("error.jsp").forward(request, response);
+		} else {
+			request.getRequestDispatcher("h_order.jsp").forward(request,response);
+		}
+	}
+	/*********************** 条件查询订单信息 **************************/
+	private void OrderifQuery(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		OrderBean orderBean = new OrderBean();
+		orderBean.setUid(Integer.valueOf(request.getParameter("uid")));
+		request.setAttribute("OrderifQuery",orderDao.queryM(orderBean));
+		System.out.println("OK22");
+		request.getRequestDispatcher("q_person_order.jsp").forward(request,
+				response);
+	
+	}
+
+}
